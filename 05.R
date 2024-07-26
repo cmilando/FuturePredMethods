@@ -110,14 +110,16 @@ baselinerate <- 100
 
 p5 <- ggplot(avg1_df) + theme_classic2() +
   geom_hline(yintercept = 0, linetype = '41') +
-  geom_ribbon(aes(x = as.integer(month), 
+  geom_ribbon(aes(x = factor(month, levels = paste0(1:12), ordered = T), 
                   ymin = ymin/baselinerate * 100, ymax = ymax/baselinerate * 100,
                   fill = ssp, group = ssp), alpha = 0.25) +
-  scale_x_continuous(labels = c("Jan", "Apr",
-                              "July", "Oct"), breaks = c(1, 4, 7, 10)) +
+  # scale_x_continuous(labels = c("Jan", "Apr",
+  #                             "July", "Oct"), breaks = c(1, 4, 7, 10)) +
+  scale_x_discrete(labels = c("Jan", "", "", "Apr","", "",
+                                "July","", "", "Oct","", "")) +
   coord_cartesian(clip = "off", ylim = c(0, 3)) +
-  geom_line(aes(x = as.integer(month), y = y/baselinerate * 100, color = ssp, group = ssp)) +
-  geom_point(aes(x = as.integer(month), y = y/baselinerate * 100, color = ssp, group = ssp),
+  geom_line(aes(x = factor(month, levels = paste0(1:12), ordered = T), y = y/baselinerate * 100, color = ssp, group = ssp)) +
+  geom_point(aes(x = factor(month, levels = paste0(1:12), ordered = T), y = y/baselinerate * 100, color = ssp, group = ssp),
              shape = 21) +
   scale_color_manual(values = viridis::magma(10)[5]) +
   scale_fill_manual(values = viridis::magma(10)[5]) +
@@ -128,7 +130,7 @@ p5 <- ggplot(avg1_df) + theme_classic2() +
            x = 1,
            y = 3, fontface = 'bold',
            family = ff,
-           label = 'f. Use Delta method to estimate\n% change and SE by month', 
+           label = 'f. Use Delta method to estimate\n% change and eCI by month', 
            hjust = 0)  +
   theme(legend.position.inside = c(0.15, 0.7),
         legend.position = 'inside',
