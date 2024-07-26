@@ -102,19 +102,22 @@ library(extrafont)
 font_import()
 loadfonts()
 
-#popsize
-popsize <- 100
+#baselinerate
+
+## NB: in the actual code, baseline rate is calculated from data
+## and varies by month 
+baselinerate <- 100
 
 p5 <- ggplot(avg1_df) + theme_classic2() +
   geom_hline(yintercept = 0, linetype = '41') +
   geom_ribbon(aes(x = as.integer(month), 
-                  ymin = ymin/popsize * 100, ymax = ymax/popsize * 100,
+                  ymin = ymin/baselinerate * 100, ymax = ymax/baselinerate * 100,
                   fill = ssp, group = ssp), alpha = 0.25) +
   scale_x_continuous(labels = c("Jan", "Apr",
                               "July", "Oct"), breaks = c(1, 4, 7, 10)) +
   coord_cartesian(clip = "off", ylim = c(0, 3)) +
-  geom_line(aes(x = as.integer(month), y = y/popsize * 100, color = ssp, group = ssp)) +
-  geom_point(aes(x = as.integer(month), y = y/popsize * 100, color = ssp, group = ssp),
+  geom_line(aes(x = as.integer(month), y = y/baselinerate * 100, color = ssp, group = ssp)) +
+  geom_point(aes(x = as.integer(month), y = y/baselinerate * 100, color = ssp, group = ssp),
              shape = 21) +
   scale_color_manual(values = viridis::magma(10)[5]) +
   scale_fill_manual(values = viridis::magma(10)[5]) +
@@ -134,4 +137,5 @@ p5 <- ggplot(avg1_df) + theme_classic2() +
 
 p5
 
+## TODO, need to update so that its not just baseline
 
