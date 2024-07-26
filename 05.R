@@ -114,8 +114,12 @@ p5 <- ggplot(avg1_df) + theme_classic2() +
                               "July", "Oct"), breaks = c(1, 4, 7, 10)) +
   coord_cartesian(clip = "off", ylim = c(0, 3)) +
   geom_line(aes(x = as.integer(month), y = y/popsize * 100, color = ssp, group = ssp)) +
+  geom_point(aes(x = as.integer(month), y = y/popsize * 100, color = ssp, group = ssp),
+             shape = 21) +
+  scale_color_manual(values = viridis::magma(10)[5]) +
+  scale_fill_manual(values = viridis::magma(10)[5]) +
   #facet_rep_wrap(~reg_names, repeat.tick.labels = 'x') +
-  xlab("Month") +
+  xlab(NULL) +
   ylab("% Change in Daily ED Visit Rate (%)") +
   annotate(geom = 'text', 
            x = 1,
