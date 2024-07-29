@@ -1,6 +1,10 @@
-##################################################################################
-##################################################################################
-# ok now bootrap
+# -----------------------------------------------------------------------------
+# 
+# Plot 5: bootstrap total diffs
+#
+# -----------------------------------------------------------------------------
+
+# ok now bootstrap
 library(pbapply)
 library(future)
 library(future.apply)
@@ -9,10 +13,9 @@ n_bootstrap <- 250
 
 # make a comb_mat to sample from
 # this should be length(dt) x 3000
-dim(comb_diff)
+# 8 is the number of non-rep columns
 cdiff2 <- cbind(diff1, diff2[, 8:(250-1)], diff3[, 8:(250-1)])
 cdiff2_mat <- as.matrix(cdiff2[, 8:ncol(cdiff2)])
-dim(cdiff2_mat)
 
 # Initialize matrix to store the differences
 differences <- matrix(NA, nrow = n_bootstrap, ncol = length(present_estimates))
@@ -22,8 +25,7 @@ sample1 <- function(x) sample(x, 1)
 
 # Generate bootstrap samples and calculate differences
 differences <- pbsapply(1:n_bootstrap, function(i) apply(cdiff2_mat, 1, sample1),
-                        cl = 'future')
-dim(differences)
+                        cl = 'future', future.seed=TRUE)
 
 # Calculate empirical confidence intervals
 eCI_lower <- apply(differences, 1, quantile, probs = 0.025, na.rm = T)
@@ -46,10 +48,6 @@ p4b <- ggplot(diff_df %>% filter(year == 1996, month %in% 6:8)) +
   scale_fill_manual(values = c('lightgreen')) +
   scale_color_manual(values = c('forestgreen')) +
   geom_line(aes(x = date, y = eEst, color = scen), show.legend = T) +
-  # geom_ribbon(aes(x = date, ymin = exp_lb, ymax = exp_ub, fill = scen),  alpha = 0.75,
-  #             data = obs_comb4_comb %>% filter(year == 1996, month %in% 6:8)) +
-  # geom_line(aes(x = date, y = exp_est, color = scen), alpha = 0.75,
-  #           data = obs_comb4_comb %>% filter(year == 1996, month %in% 6:8)) +
   xlab(NULL) + ylab("Change in Daily ED visits per 100k") +
   scale_y_continuous(breaks = c(0, 4, 8, 12)) +
   geom_hline(yintercept = 0, linetype = '41') +
@@ -60,5 +58,3 @@ p4b <- ggplot(diff_df %>% filter(year == 1996, month %in% 6:8)) +
   theme(legend.position.inside = c(0.15, 0.7),
         legend.position = 'inside',
         legend.title = element_blank())
-
-p4b

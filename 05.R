@@ -1,3 +1,9 @@
+# -----------------------------------------------------------------------------
+# 
+# Plot 6: delta diff
+#
+# -----------------------------------------------------------------------------
+
 # SO THE END GOAL IS 
 # MONTHLY EST + CONF INTERVALS BY REGION AND SSP
 
@@ -17,13 +23,6 @@
 # put in terms of a % difference from baseline
 
 # Ok now delta method 4 times to get IRD and % diff from expected 
-# Ok now delta method 4 times to get IRD and % diff from expected 
-library(tidyverse)
-library(future)
-library(future.apply)
-plan(multisession)
-options(future.globals.maxSize = 1200*1024^2)
-
 all_df <- diff_df
 
 # SSP = '245'
@@ -73,13 +72,6 @@ avg1 <- future_lapply(sub1, function(x) {
   
   y
   
-  # # 
-  # ggplot(x[sample(1:nrow(x), size = 100),]) +
-  #   geom_pointrange(aes(x = date, y = eEst, ymin = eCI_lower, ymax = eCI_upper)) +
-  #   geom_pointrange(data = y,
-  #                   mapping = aes(x = x, y =y, ymin = ymin, ymax = ymax),
-  #                   color = 'red')
-  
 })
 
 avg1_df <- do.call(rbind, avg1)
@@ -96,14 +88,6 @@ head(avg1_df)
 avg1_df$month_int <- as.integer(avg1_df$month)
 head(avg1_df)
 
-library(ggpubr)
-library(lemon)
-library(extrafont)
-font_import()
-loadfonts()
-
-#baselinerate
-
 ## NB: in the actual code, baseline rate is calculated from data
 ## and varies by month 
 baselinerate <- 100
@@ -113,8 +97,6 @@ p5 <- ggplot(avg1_df) + theme_classic2() +
   geom_ribbon(aes(x = factor(month, levels = paste0(1:12), ordered = T), 
                   ymin = ymin/baselinerate * 100, ymax = ymax/baselinerate * 100,
                   fill = ssp, group = ssp), alpha = 0.25) +
-  # scale_x_continuous(labels = c("Jan", "Apr",
-  #                             "July", "Oct"), breaks = c(1, 4, 7, 10)) +
   scale_x_discrete(labels = c("Jan", "", "", "Apr","", "",
                                 "July","", "", "Oct","", "")) +
   coord_cartesian(clip = "off", ylim = c(0, 3)) +
@@ -123,7 +105,6 @@ p5 <- ggplot(avg1_df) + theme_classic2() +
              shape = 21) +
   scale_color_manual(values = viridis::magma(10)[5]) +
   scale_fill_manual(values = viridis::magma(10)[5]) +
-  #facet_rep_wrap(~reg_names, repeat.tick.labels = 'x') +
   xlab(NULL) +
   ylab("% Change in Daily ED Visit Rate (%)") +
   annotate(geom = 'text', 
@@ -136,8 +117,3 @@ p5 <- ggplot(avg1_df) + theme_classic2() +
         legend.position = 'inside',
         legend.title = element_blank())
   
-
-p5
-
-## TODO, need to update so that its not just baseline
-

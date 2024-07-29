@@ -1,6 +1,8 @@
-##################################################################################
-##################################################################################
-# ok Greg's method is to bootstrap this step instead
+# -----------------------------------------------------------------------------
+# 
+# Plot 4: bootstrap
+#
+# -----------------------------------------------------------------------------
 
 get_diff_bs <- function(dt, yr, month,
                         present_estimates, present_se,
@@ -12,18 +14,20 @@ get_diff_bs <- function(dt, yr, month,
   
   for (i in 1:n_bootstrap) {
     
+    # will give warnings because of maxlag
+    
     # Sample from the present distribution for each time point
-    present_sample <- rnorm(length(present_estimates), 
-                            mean = present_estimates, 
-                            sd = present_se)
+    present_sample <- rnorm(length(present_estimates) - (maxlag), 
+                            mean = present_estimates[(maxlag+1):length(present_estimates)], 
+                            sd = present_se[(maxlag+1):length(present_estimates)])
     
     # Sample from the combined future distribution for each time point
-    future_sample <- rnorm(length(future_estimates), 
-                           mean = future_estimates, 
-                           sd = future_se)
+    future_sample <- rnorm(length(future_estimates) - (maxlag), 
+                           mean = future_estimates[(maxlag+1):length(future_estimates)], 
+                           sd = future_se[(maxlag+1):length(future_estimates)])
     
     # Calculate the differences
-    differences[i, ] <- future_sample - present_sample
+    differences[i, ] <- c(rep(NA, maxlag), future_sample - present_sample)
   }
   dim(differences)
   
@@ -77,20 +81,13 @@ diff3 <- get_diff_bs(obs_comb_pres$date, obs_comb_pres$year, obs_comb_pres$month
 comb_diff <- rbind(diff1, diff2, diff3)
 
 p3b <- ggplot() +
-  theme_pubr() + #coord_cartesian(ylim = YLIM) +
+  theme_pubr() + 
   xlab(NULL) + ylab("Change in Daily ED visits per 100k") +
-  #geom_line(aes(x = date, y = all)) +
-  ###
-  # geom_ribbon(aes(x = date, ymin = exp_lb, ymax = exp_ub), fill = 'lightblue', alpha = 0.75,
-  #             data = obs_comb_pres %>% filter(year == 1996, month %in% 6:8)) +
-  # geom_line(aes(x = date, y = exp_est), color = 'blue', alpha = 0.75,
-  #           data = obs_comb_pres %>% filter(year == 1996, month %in% 6:8)) +
-  ###
   geom_ribbon(aes(x = date, ymin = eCI_lower, ymax = eCI_upper, fill = scen, group = scen), alpha = 0.5,
               data = comb_diff %>% filter(year == 1996, month %in% 6:8)) +
   scale_fill_manual(values = RColorBrewer::brewer.pal(3, "Greens")) +
   scale_color_manual(values = RColorBrewer::brewer.pal(3, "Greens")) +
-  geom_line(aes(x = date, y = eEst,  col= scen, group = scen),  #linetype = '22',
+  geom_line(aes(x = date, y = eEst,  col= scen, group = scen),  
             data = comb_diff %>% filter(year == 1996, month %in% 6:8)) +
   coord_cartesian(clip = 'off') +
   annotate(geom = 'text', x = as.Date('1996-06-01'),

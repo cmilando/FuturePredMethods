@@ -1,18 +1,8 @@
-library(dlnm) ; 
-library(splines) ; 
-source("crossbasis_local.R")
-library(future); 
-library(future.apply)
-library(tidyverse)
-library(ggpubr)
-
-ff <- "Helvetica"
-##################################################################################
-##################################################################################
-source('00_create_data.R')
-
-##################################################################################
-##################################################################################
+# -----------------------------------------------------------------------------
+# 
+# Plot 0 
+#
+# -----------------------------------------------------------------------------
 
 
 # graph 1
@@ -55,6 +45,7 @@ coef(m)
 
 # identical(round(coef(m_true), 4), round(coef(m), 4))
 cp <- crosspred(cb, m, cen = 20)
+
 cp_df <- data.frame(
   x = cp$predvar,
   est = cp$allRRfit,
@@ -63,24 +54,20 @@ cp_df <- data.frame(
 )
 
 p0 <- ggplot(cp_df) +
-  theme_pubr() + #coord_cartesian(ylim = YLIM) +
+  theme_pubr() + 
   geom_hline(yintercept = 1, linetype = '11') +
   geom_ribbon(aes(x = x, ymin = lb, ymax = ub),  
               alpha = 0.5, fill = grey(0.75)) + 
   geom_line(aes(x = x, y = est), color = 'blue') +
-  ylab('Relative Risk') + #xlab(expression(Daily~Mean~Temp.~(degree*C))) +
+  ylab('Relative Risk') + 
   coord_cartesian(clip = 'off') +
   scale_x_continuous(breaks = c(0, 20, 40),
                      labels = c(expression(0~degree*C), 
                                 expression(20~degree*C), 
                                 expression(40~degree*C))) +
   xlab(NULL) +
-  #theme(axis.ticks.x = element_blank()) +
   annotate(geom = 'text', x = -15, y = 1.315, fontface = 'bold',
            label = 'a. Use DLNM to model temperature-ED\nvisits relationship', 
            hjust = 0,
            family = ff)
-p0
-ggsave("p0.png", width = 10/3, height = 5/2, dpi = 600)
-
 

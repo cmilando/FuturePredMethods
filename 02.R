@@ -1,7 +1,8 @@
-##################################################################################
-##################################################################################
-
-
+# -----------------------------------------------------------------------------
+# 
+# Plot 2
+#
+# -----------------------------------------------------------------------------
 set.seed(123)
 
 get_future_df <- function(t_fut) {
@@ -19,23 +20,15 @@ get_future_df <- function(t_fut) {
   # lets look at the timeseries
   ci.level = 0.95
   z <- qnorm(1 - (1 - ci.level)/2)
+  
   ## **** VERY IMPORTANTT TO USE NEWDATA
   pred_m2 <- predict(object = m, newdata = obs3, se.fit = T)
   ## *****
-  head(pred_m2$fit, 30)
   exp_est <- exp(pred_m2$fit)
   exp_ub <- exp(pred_m2$fit + z * pred_m2$se.fit)
   exp_lb <- exp(pred_m2$fit - z * pred_m2$se.fit)
   
   fit_df <- data.frame(exp_est, exp_ub, exp_lb)
-  print(head(fit_df[maxlag:(maxlag+100),]))
-  
-  ## right, because of cb, it starts 21 days below, so add 21 0s
-  # fit_df <- rbind(data.frame(exp_est = rep(NA, maxlag), 
-  #                            exp_ub= rep(NA, maxlag), 
-  #                            exp_lb= rep(NA, maxlag)), fit_df)
-  
-  print(sum(exp_est, na.rm = T))
   
   obs_comb <- cbind(obs3, fit_df)
   return(obs_comb)
@@ -58,25 +51,14 @@ head(obs_comb4)
 obs_comb4$year = year(obs_comb4$date)
 obs_comb4$month = month(obs_comb4$date)
 
-# col1 = 'lightgreen'
-# col2 = 'forestgreen'
-library(tidyverse)
-library(viridisLite)
 p2 <- ggplot() +
-  theme_pubr() + #coord_cartesian(ylim = YLIM) +
+  theme_pubr() + 
   xlab(NULL) + ylab("Daily ED visits per 100k") +
-  #geom_line(aes(x = date, y = all)) +
-  ###
-  # geom_ribbon(aes(x = date, ymin = exp_lb, ymax = exp_ub), fill = 'lightblue', alpha = 0.75,
-  #             data = obs_comb_pres %>% filter(year == 1996, month %in% 6:8)) +
-  # geom_line(aes(x = date, y = exp_est), color = 'blue', alpha = 0.75,
-  #           data = obs_comb_pres %>% filter(year == 1996, month %in% 6:8)) +
-  ###
   geom_ribbon(aes(x = date, ymin = exp_lb, ymax = exp_ub, fill = scen, group = scen), alpha = 0.5,
               data = obs_comb4 %>% filter(year == 1996, month %in% 6:8)) +
   scale_fill_manual(values = RColorBrewer::brewer.pal(3, "Reds")) +
   scale_color_manual(values = RColorBrewer::brewer.pal(3, "Reds")) +
-  geom_line(aes(x = date, y = exp_est,  col= scen, group = scen),  #linetype = '22',
+  geom_line(aes(x = date, y = exp_est,  col= scen, group = scen),  
             data = obs_comb4 %>% filter(year == 1996, month %in% 6:8)) +
   annotate(geom = 'text', x = as.Date('1996-06-01'),
            y = 125, fontface = 'bold',
@@ -86,6 +68,4 @@ p2 <- ggplot() +
         legend.position = 'inside',
         legend.title = element_blank())
 
-p2
 
-p0 + p1 + p2

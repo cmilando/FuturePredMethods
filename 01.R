@@ -1,7 +1,9 @@
-### 
-# ok so now, predict I gues
+# -----------------------------------------------------------------------------
+# 
+# plot 1: Predict
+#
+# -----------------------------------------------------------------------------
 
-# lets look at the timeseries
 ci.level = 0.95
 z <- qnorm(1 - (1 - ci.level)/2)
 pred_m <- predict(object = m, newdata = obs2, se.fit = T)
@@ -10,14 +12,6 @@ exp_ub <- exp(pred_m$fit + z * pred_m$se.fit)
 exp_lb <- exp(pred_m$fit - z * pred_m$se.fit)
 
 fit_df <- data.frame(exp_est, exp_ub, exp_lb)
-print(head(fit_df[maxlag:(maxlag+100),]))
-
-## right, because of cb, it starts 21 days below, so add 21 0s
-# fit_df <- rbind(data.frame(exp_est = rep(NA, maxlag), 
-#                            exp_ub= rep(NA, maxlag), 
-#                            exp_lb= rep(NA, maxlag)), fit_df)
-
-print(sum(exp_est, na.rm = T))
 
 obs_comb_pres <- cbind(obs2, fit_df)
 obs_comb_pres$scen = 'Present E[Y] (95% CI)'
@@ -26,11 +20,6 @@ obs_comb_pres$month = month(obs_comb_pres$date)
 
 col1 = 'lightblue'
 col2 = 'blue'
-
-YLIM <- c(150, 230)
-
-library(tidyverse)
-library(ggpubr)
 
 p1 <- ggplot(obs_comb_pres %>% filter(year == 1996, month %in% 6:8)) +
   theme_pubr() + #coord_cartesian(ylim = YLIM) +
@@ -46,11 +35,7 @@ p1 <- ggplot(obs_comb_pres %>% filter(year == 1996, month %in% 6:8)) +
         legend.title = element_blank()) +
   annotate(geom = 'text', x = as.Date('1996-06-01'),
            y = 125, fontface = 'bold',
-           label = 'b. Use model to estimate time-series of ED visits in the present', hjust = 0,
+           label = 'b. Use model to estimate time-series of ED visits in the present', 
+           hjust = 0,
            family = ff)
 
-p1
-ggsave("p1.png", width = 10/3, height = 5/2, dpi = 600)
-
-library(patchwork)
-p0 + p1

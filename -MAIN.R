@@ -1,18 +1,43 @@
+# -----------------------------------------------------------------------------
+# 
+# Run all
+#
+# -----------------------------------------------------------------------------
+library(dlnm) 
+library(splines) 
+library(future)
+library(future.apply)
+library(tidyverse)
+library(ggpubr)
+library(viridisLite)
+library(lemon)
+library(extrafont)
+library(patchwork)
+library(extrafont)
+
+# -----------------------------------------------------------------------------
+plan(multisession)
+options(future.globals.maxSize = 1200*1024^2)
+extrafont::loadfonts()
+extrafont::fonttable()
+loadfonts()
+ff <- "Helvetica"
+
+## modified version of dlnm::crossbasis that extends basis
+source("crossbasis_local.R") 
+
+# -----------------------------------------------------------------------------
+source("00_create_data.R")
 source("00.R")
 source("01.R")
 source("02.R")
 source("03.R")
 source("04.R")
 source("05.R")
+# -----------------------------------------------------------------------------
 
-library(patchwork)
-library(extrafont)
-loadfonts()
-extrafont::loadfonts()
-extrafont::fonttable()
 lsize = 9
 
-#pdf("test_methods.pdf", width = 11/3*2, height = 6)
 p0 +  theme(axis.title.x = element_blank(),
             legend.text = element_text(family = ff, size = lsize)) +
   #
@@ -51,6 +76,6 @@ p0 +  theme(axis.title.x = element_blank(),
           axis.title = element_text(family = ff),
           legend.background = element_blank()) + 
   plot_layout(ncol = 3, nrow = 2) 
-#dev.off()
+
 
 ggsave("methods_fig1.png", width = 12, height = 6, dpi = 600)
