@@ -60,6 +60,7 @@ p2 <- ggplot() +
   scale_color_manual(values = RColorBrewer::brewer.pal(3, "Reds")) +
   geom_line(aes(x = date, y = exp_est,  col= scen, group = scen),  
             data = obs_comb4 %>% filter(year == 1996, month %in% 6:8)) +
+  coord_cartesian(ylim = c(80, 125)) +
   annotate(geom = 'text', x = as.Date('1996-06-01'),
            y = 125, fontface = 'bold',
            label = 'c. Predict future visits by GCM', hjust = 0,

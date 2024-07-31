@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
 # 
-# Plot 6: delta diff
+# Plot 6: bootstrapp diff
 #
 # -----------------------------------------------------------------------------
 
@@ -22,67 +22,69 @@
 
 # put in terms of a % difference from baseline
 
-# Ok now delta method 4 times to get IRD and % diff from expected 
-all_df <- diff_df
-
-# SSP = '245'
 # 
-# this_df <- all_df %>% filter(scen == SSP)
-all_df <- all_df %>%
-  mutate(strata1 = paste0(month, ".", scen))
-head(all_df)
+all_df <- diff_df
+all_df$eSE <- (all_df$eCI_upper - all_df$eCI_lower) / (2 * z)
 
-# first, get the monthly mean
+MONTHS_FAC = c(1:12)
+names(MONTHS_FAC) = 1:12
+
+all_df$months_fct <- MONTHS_FAC[all_df$month]
+
+all_df$region = 'US'
+
+all_df <- all_df %>%
+  mutate(strata1 = paste0(region, ".", months_fct, ".", scen))
+
+scale_calc <- all_df %>%
+  filter(month == all_df$month[1]) %>%
+  group_by(strata1) %>% tally()
+
+scale_calc$n/31 # n YEARS
+
+SCALING_FCT = 1 / 7
+
+# SPLIT
 sub1 <- split(all_df, f = all_df$strata1)
 
 avg1 <- future_lapply(sub1, function(x) {
-  
-  # 
-  # x = sub1[[1]]
+  #
+  #x = sub1[[1]]
   
   # first, remeove any na
   x <- x[!is.na(x$eEst),]
   
-  # then
-  n_x <- nrow(x)
-  gradient <- rep(1/n_x, times = n_x)
+  NBOOT <- 250
+  mat_ts <- matrix(nrow = nrow(x), ncol = NBOOT)
   
-  # get variances
-  ci.level = 0.95
-  z <- qnorm(1 - (1 - ci.level)/2)
-  se_x <- (x$eCI_upper - x$eCI_lower) / (2 * z)
-  var_x <- se_x^2
-  cov_x <- diag(var_x, nrow = n_x, ncol = n_x)
+  for(i in 1:nrow(x)) {
+    mat_ts[i, ] <- rnorm(NBOOT, mean = x$eEst[i], sd = x$eSE[i])
+  }
   
-  # OPG
-  combined_variance <- t(gradient) %*% cov_x %*% gradient
+  row_sums = as.matrix(apply(mat_ts, 2, sum) * SCALING_FCT)
   
-  # Standard error
-  combined_se <- sqrt(combined_variance)
+  # Calculate empirical confidence intervals
+  eCI_lower <- apply(row_sums, 2, quantile, probs = 0.025, na.rm = T)
+  eEst <- apply(row_sums, 2, quantile, probs = 0.5, na.rm = T)
+  eCI_upper <- apply(row_sums, 2, quantile, probs = 0.975, na.rm = T)
   
-  # Print the combined standard error
-  combined_se
-  comb_mean = mean(x$eEst)
-  comb_mean
-  
-  y <- data.frame(x = x$strata1[1],
-                  y  = comb_mean,
-                  ymin = comb_mean - z * combined_se,
-                  ymax = comb_mean + z * combined_se)
-  
-  y
-  
-})
+  diff_df <- data.frame(strata = x$strata1[1],
+                        eCI_lower,
+                        eEst,
+                        eCI_upper)
+  diff_df
+}, future.seed = T)
+
 
 avg1_df <- do.call(rbind, avg1)
 head(avg1_df)
 #saveRDS(avg1_df, 'avg1_df.RDS')
 
-xx <- do.call(rbind, strsplit(avg1_df$x, ".", fixed = T))
+xx <- do.call(rbind, strsplit(avg1_df$strata, ".", fixed = T))
 
 avg1_df <- cbind(avg1_df, xx)
 
-colnames(avg1_df)[5:6] <- c('month', 'ssp')
+colnames(avg1_df)[5:7] <- c('region','month', 'ssp')
 head(avg1_df)
 
 avg1_df$month_int <- as.integer(avg1_df$month)
@@ -90,28 +92,28 @@ head(avg1_df)
 
 ## NB: in the actual code, baseline rate is calculated from data
 ## and varies by month 
-baselinerate <- 100
+# baselinerate <- 100
 
 p5 <- ggplot(avg1_df) + theme_classic2() +
   geom_hline(yintercept = 0, linetype = '41') +
   geom_ribbon(aes(x = factor(month, levels = paste0(1:12), ordered = T), 
-                  ymin = ymin/baselinerate * 100, ymax = ymax/baselinerate * 100,
+                  ymin = eCI_lower, ymax = eCI_upper,
                   fill = ssp, group = ssp), alpha = 0.25) +
   scale_x_discrete(labels = c("Jan", "", "", "Apr","", "",
                                 "July","", "", "Oct","", "")) +
-  coord_cartesian(clip = "off", ylim = c(0, 3)) +
-  geom_line(aes(x = factor(month, levels = paste0(1:12), ordered = T), y = y/baselinerate * 100, color = ssp, group = ssp)) +
-  geom_point(aes(x = factor(month, levels = paste0(1:12), ordered = T), y = y/baselinerate * 100, color = ssp, group = ssp),
+  coord_cartesian(clip = "off", ylim = c(0, 80)) +
+  geom_line(aes(x = factor(month, levels = paste0(1:12), ordered = T), y = eEst, color = ssp, group = ssp)) +
+  geom_point(aes(x = factor(month, levels = paste0(1:12), ordered = T), y = eEst, color = ssp, group = ssp),
              shape = 21) +
   scale_color_manual(values = viridis::magma(10)[5]) +
   scale_fill_manual(values = viridis::magma(10)[5]) +
   xlab(NULL) +
-  ylab("% Change in Daily ED Visit Rate (%)") +
-  annotate(geom = 'text', 
+  ylab("Monthly Sum of ED Visits per 100k") +
+  annotate(geom = 'text',
            x = 1,
-           y = 3, fontface = 'bold',
+           y = 80, fontface = 'bold',
            family = ff,
-           label = 'f. Use Delta method to estimate\n% change and eCI by month', 
+           label = 'f. Bootstrap the net change and\n eCI by month',
            hjust = 0)  +
   theme(legend.position.inside = c(0.15, 0.7),
         legend.position = 'inside',

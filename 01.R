@@ -30,6 +30,7 @@ p1 <- ggplot(obs_comb_pres %>% filter(year == 1996, month %in% 6:8)) +
               alpha = 0.5) +
   geom_line(aes(x = date, y = exp_est, color = scen), show.legend = T) +
   xlab(NULL) + ylab("Daily ED visits per 100k") +
+  coord_cartesian(ylim = c(80, 125)) +
   theme(legend.position.inside = c(0.15, 0.75),
         legend.position = 'inside',
         legend.title = element_blank()) +

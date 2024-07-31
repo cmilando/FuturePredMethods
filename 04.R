@@ -14,7 +14,7 @@ n_bootstrap <- 250
 # make a comb_mat to sample from
 # this should be length(dt) x 3000
 # 8 is the number of non-rep columns
-cdiff2 <- cbind(diff1, diff2[, 8:(250-1)], diff3[, 8:(250-1)])
+cdiff2 <- cbind(diff1, diff2[, 8:ncol(diff2)], diff3[, 8:ncol(diff3)])
 cdiff2_mat <- as.matrix(cdiff2[, 8:ncol(cdiff2)])
 
 # Initialize matrix to store the differences
@@ -58,3 +58,4 @@ p4b <- ggplot(diff_df %>% filter(year == 1996, month %in% 6:8)) +
   theme(legend.position.inside = c(0.15, 0.7),
         legend.position = 'inside',
         legend.title = element_blank())
+p4b
