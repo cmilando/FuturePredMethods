@@ -31,9 +31,10 @@ crossbasis_local <- function(x, x_to_match, round_by, lag, argvar = list(), argl
       "otherwise to the lag period (for x as a matrix of lagged occurrences)"
     )
   }
-  ## ------------------
+  ## ------------------ START OF CODE THAT MODIFIES crossbasis() -------------------
   ##
   x <- round(x, round_by)
+  x <- unique(x) # this keeps merge from blowing up
   ##
   basisvar_simple <- do.call("onebasis", modifyList(argvar, list(x = as.numeric(x))))
   
@@ -63,7 +64,7 @@ crossbasis_local <- function(x, x_to_match, round_by, lag, argvar = list(), argl
   
   ### ******
   
-  ## ------------------
+  ## ------------------ END OF CODE THAT MODIFIES crossbasis() -------------------
   if (length(arglag) == 0L || diff(lag) == 0L) {
     arglag <- list(fun = "strata", df = 1, intercept = TRUE)
   }
